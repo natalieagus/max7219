@@ -127,7 +127,7 @@ module max7219_driver (
         max_data = $reverse(h00);
         if(max.busy != 1) {
           digit_index.d = 0;
-          state.d = state.SEND_WORD;
+          state.d = state.SEND_ALL_DIGITS;
         }
         
       state.SEND_ALL_DIGITS:
