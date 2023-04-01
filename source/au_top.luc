@@ -35,7 +35,7 @@ module au_top (
     io_sel = 4h0; 
     io_led = 3x{{h00}}; 
     
-    max7219_driver.segment_values = {D, E, A, D, B, E, E, F}; // topmost row will display F
+    max7219_driver.segment_values = $reverse({D, E, A, D, B, E, E, F}); // topmost row will display D
     max7219_driver.new = 1;
     
     led = max7219_driver.debug_state;
