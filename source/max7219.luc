@@ -1,0 +1,107 @@
+module max7219 (
+    input clk,  // clock
+    input rst,  // reset
+    input addr_in[8],
+    input din[8],
+    input start,
+    output cs,
+    output dout,
+    output sck,
+    output busy,
+    output debug_state[8],
+    output debug_counter[8],
+    output debug_writer[3],
+    output debug_data[8],
+    output debug_address[8]
+  ) {
+  
+  .clk (clk) {
+      edge_detector slowclock_edge(#RISE(1), #FALL(0));
+      .rst(rst) { 
+        fsm state(#INIT(INITIALIZE)) = {INITIALIZE, IDLE, TRANSFER_ADDR, TRANSFER_DATA, WAIT_LATCH};
+        counter slowclock(#SIZE(30));
+        dff write_pointer[3](#INIT(0));
+        dff data[8];
+        dff addr[8];
+        dff load_state(#INIT(1)); 
+    }
+  }
+  
+
+  sig slowclock_value;
+
+  always  {
+    slowclock_value = slowclock.value[25]; // 100/2^4 Mhz = 6.125Mhz 
+    slowclock_edge.in = slowclock_value;
+    sck = slowclock_value;
+    
+    
+    busy = state.q != state.IDLE;  // busy when not idle
+    dout = 0;
+    
+    debug_state = 8b11111111;
+    debug_counter = 0;
+    debug_writer = write_pointer.q;
+    debug_data = data.q;
+    debug_address = addr.q;
+    
+    case (state.q) {
+      state.INITIALIZE:
+        debug_state = b01010101;
+        // stall for one slowclock cycle 
+        if (slowclock_edge.out){
+          state.d = state.IDLE;
+        }
+        
+      state.IDLE:
+        load_state.d = 1;
+        debug_state = 8b1111; // In IDLE state
+        if (start) { // if we should start a new transfer
+          // save our data and address values to memory
+          addr.d = addr_in;
+          data.d = din;
+          
+          // reset the writer dff
+          write_pointer.d = 0;
+          
+          // Toggle the load pin (makes the 7219 start listening for data)
+          load_state.d = 0;
+          
+          state.d = state.TRANSFER_ADDR;
+        }
+        
+        
+      state.TRANSFER_ADDR:
+        debug_state = 8b11; // in transfer addr state
+        dout = addr.q[write_pointer.q];
+        if (slowclock_edge.out){
+            write_pointer.d = write_pointer.q + 1; // write the next address bit
+        }
+        
+        if (&write_pointer.q & slowclock_edge.out){ // if write_pointer is 3b111
+          state.d = state.TRANSFER_DATA;
+          write_pointer.d = b0; // reset the write pointer to start from 0 again
+        }
+        
+      state.TRANSFER_DATA: 
+        debug_state = 8b111; // in transfer data state 
+        dout = data.q[write_pointer.q];
+        if (slowclock_edge.out){
+            write_pointer.d = write_pointer.q + 1; // write the next data bit
+        }
+        if (&write_pointer.q & slowclock_edge.out){ // if write_pointer is 3b111
+          // latch the data by pulsing the load pin (cs)
+          load_state.d = 1;
+          state.d = state.WAIT_LATCH;
+        }
+      
+      state.WAIT_LATCH:
+        if (slowclock_edge.out){
+          state.d = state.IDLE;
+        }
+    }
+    
+    cs = load_state.q;
+
+  }
+}

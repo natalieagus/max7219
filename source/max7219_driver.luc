@@ -1,0 +1,182 @@
+module max7219_driver (
+    input clk,  // clock
+    input rst,  // reset
+    input new,
+    input segment_values[8][8], // 8x8 LED matrix values, off or on each pixel
+    output done,
+    output max7219_load, 
+    output max7219_data,
+    output max7219_clock,
+    output debug_state[8],
+    output debug_counter[8],
+    output debug_writer[3],
+    output debug_data[8],
+    output debug_address[8],
+    output debug_driver_state[4],
+    output debug_digit_index[8],
+    output debug_segment_current[8],
+    output debug_segment_original[8],
+    output debug_digit_index_original[8]
+  ) {
+  
+    sig max_addr[8];
+    sig max_data[8];
+    sig current_digit_address[8];
+    sig current_segment_values[8];
+  
+  .clk(clk) {
+    .rst(rst) {
+      max7219 max;
+      fsm state(#INIT(INITIALIZE)) = {
+        INITIALIZE, // wait until max7219 is ready
+        IDLE, //  wait for new input 
+        SEND_SHUTDOWN, // shut every pixel down
+        SEND_TURN_ON,  // turn it on again 
+        SEND_DISPLAY_TEST, // test all LED flash
+        SEND_OFF_DISPLAY_TEST, // off flashing of LED
+        SEND_NO_DECODE, // turn off decode reg and set each digit directly
+        SEND_ALL_DIGITS, // scanline register to switch on all rows (digits)
+        SEND_WORD // write 8 digits of data (or 8 rows 8 cols)
+        };
+      dff digit_index[4](#INIT(0));
+    }
+  }
+  
+  // we reverse the address of the DIGIT REG address for 7219 
+  const DIGIT_ADDRESS = 
+  {
+    $reverse(h08),
+    $reverse(h07),
+    $reverse(h06),
+    $reverse(h05),
+    $reverse(h04),
+    $reverse(h03),
+    $reverse(h02),
+    $reverse(h01)
+  };
+  
+  
+  always {
+    
+    max_addr = 8b0;
+    max_data = 8b0;
+    max.start = 0;
+    
+    debug_driver_state = 0;
+    
+    // reverse should not be used with non constant
+    
+    current_digit_address = DIGIT_ADDRESS[digit_index.q[2:0]]; //MAX 7219 starts from DIGIT reg address 1, not 0
+    current_segment_values = segment_values[digit_index.q[2:0]];
+    debug_digit_index = current_digit_address; 
+    debug_digit_index_original = digit_index.q+1;
+    debug_segment_current = current_segment_values; // is 0, reverse not working
+    debug_segment_original = segment_values[digit_index.q[2:0]];
+    
+    done = 0;
+    
+    
+     case(state.q) {
+      state.INITIALIZE:
+        debug_driver_state = b0000;
+        if(max.busy != 1) {
+           state.d = state.SEND_SHUTDOWN;
+        }
+     
+      state.SEND_SHUTDOWN:
+        debug_driver_state = b0001; 
+        max.start = 1;
+        max_addr = $reverse(h0C);
+        max_data = $reverse(h00);
+        if(max.busy != 1) {
+          state.d = state.SEND_TURN_ON;
+        }
+        
+      state.SEND_TURN_ON:
+        debug_driver_state = b0010; // this will show when max7219 is finishing the previous state (SHUTDOWN) bit loading
+        max.start = 1;
+        max_addr = $reverse(h0C);
+        max_data = $reverse(h01);
+        if(max.busy != 1) {
+          state.d = state.SEND_DISPLAY_TEST;
+        }
+
+           
+      state.SEND_DISPLAY_TEST:
+        debug_driver_state = b0011;
+        max.start = 1;
+        max_addr = $reverse(h0F);
+        max_data = $reverse(h01); // loop here to test
+        if(max.busy != 1) { // received by IDLE state
+          state.d = state.SEND_OFF_DISPLAY_TEST; 
+        }
+      
+      state.SEND_OFF_DISPLAY_TEST:
+        debug_driver_state = b0100;
+        max.start = 1;
+        max_addr = $reverse(h0F);
+        max_data = $reverse(h00); // loop here to test
+        if(max.busy != 1) { // received by IDLE state
+          state.d = state.SEND_NO_DECODE; 
+        }
+      
+      state.SEND_NO_DECODE:
+        debug_driver_state = b0101;
+        max.start = 1;
+        max_addr = $reverse(h09);
+        max_data = $reverse(h00);
+        if(max.busy != 1) {
+          digit_index.d = 0;
+          state.d = state.SEND_WORD;
+        }
+        
+      state.SEND_ALL_DIGITS:
+        debug_driver_state = b0110;
+        max.start = 1;
+        max_addr = $reverse(h0B);
+        max_data = $reverse(h07); // scan line register shows every digit
+        if(max.busy != 1){
+          state.d = state.SEND_WORD;
+        }
+     
+      state.SEND_WORD:
+        debug_driver_state = b0110;
+
+        max.start = 1;
+        max_addr = current_digit_address;
+        max_data = current_segment_values;
+        if(max.busy != 1) {
+            // write to next digit reg address
+            digit_index.d = digit_index.q + 1;
+        }
+        
+        if(digit_index.q[3]) { // have reached address 8
+          state.d = state.IDLE; // all segments are written     
+        }
+      
+      state.IDLE:
+        debug_driver_state = b1111;
+        max_addr = 8b0;
+        max_data = 8b0;
+        done = 1;
+        if (new) {
+          digit_index.d = 0;
+          state.d = state.SEND_WORD;
+        }
+
+
+    }
+    
+    max.addr_in = max_addr;
+    max.din = max_data;
+    max7219_clock = max.sck;
+    max7219_data = max.dout;
+    max7219_load = max.cs;
+    
+    debug_state = max.debug_state;
+    debug_counter = max.debug_counter;
+    debug_writer = max.debug_writer;
+    debug_data = max.debug_data;
+    debug_address = max.debug_address;
+    
+}

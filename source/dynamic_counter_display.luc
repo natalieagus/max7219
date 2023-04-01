@@ -1,0 +1,35 @@
+module dynamic_counter_display (
+    input clk,  // clock
+    input rst,  // reset
+    output max7219_load, 
+    output max7219_data,
+    output max7219_clock 
+  ) {
+
+
+  
+    .clk(clk) {
+    // The reset conditioner is used to synchronize the reset signal to the FPGA
+    // clock. This ensures the entire FPGA comes out of reset at the same time.
+    edge_detector edge_detector (#RISE(1), #FALL(0));
+    
+    .rst(rst) {
+      max7219_driver max7219_driver;
+      counter ctr (#SIZE(1), #DIV(24));
+      multi_seven_seg seg(#DIGITS(8),#DIV(1));
+      multi_base_ctr base_ctr(#DIGITS(8), #BASE(8));
+    }
+  }
+  always {
+    edge_detector.in = ctr.value;
+    base_ctr.inc = edge_detector.out;
+    seg.values = base_ctr.digits;
+    max7219_driver.new = 0;
+    
+    max7219_driver.segment_values[seg.sel] = seg.seg;
+    
+    max7219_data = max7219_driver.max7219_data;
+    max7219_load = max7219_driver.max7219_load;
+    max7219_clock = max7219_driver.max7219_clock;
+  }
+}

@@ -1,0 +1,23 @@
+module static_display (
+    input clk,  // clock
+    input rst,  // reset
+    output max7219_load, 
+    output max7219_data,
+    output max7219_clock 
+  ) {
+      max7219_driver max7219_driver(.clk(clk), .rst(rst));
+      const A = b01110111;
+      const B = b00011111;
+      const C = b01001110;
+      const D = b00111101;
+      const E = b01001111;
+      const F = b01000111;
+  
+  always {
+    max7219_data = max7219_driver.max7219_data;
+    max7219_load = max7219_driver.max7219_load;
+    max7219_clock = max7219_driver.max7219_clock;
+    max7219_driver.new = 1;
+    max7219_driver.segment_values = {D, E, A, D, B, E, E, F}; 
+  }
+}
