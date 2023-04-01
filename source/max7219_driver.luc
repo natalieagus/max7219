@@ -74,7 +74,7 @@ module max7219_driver (
     debug_segment_current = current_segment_values; // is 0, reverse not working
     debug_segment_original = segment_values[digit_index.q[2:0]];
     
-    done = 0;
+    done = 0; // not done unless we have reached IDLE
     
     
      case(state.q) {
