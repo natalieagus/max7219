@@ -25,6 +25,7 @@ module au_top (
    const TESTWORDS = {$reverse({A, A, B, D, E, F, A, B}), $reverse({D, E, A, D, B, E, E, F})};
   
   dff done(#INIT(0),.clk(clk));
+  dff sample_index(#INIT(0), .clk(clk));
   
   always {
     reset_cond.in = ~rst_n;   // input raw inverted reset signal
@@ -41,7 +42,7 @@ module au_top (
     
     max7219_driver.new = 0;
     // at first, it will show DEADBEEF
-    max7219_driver.segment_values = TESTWORDS[0]; // topmost row will display D
+    max7219_driver.segment_values = TESTWORDS[sample_index.q]; // topmost row will display A for [1] or D for [0]
 
     
     // This is a test code, do not copy blindly 
@@ -51,7 +52,7 @@ module au_top (
     }
     
     if (done.q) {
-      max7219_driver.segment_values = TESTWORDS[done.q]; // topmost row will display A for [1] or D for [0]
+      sample_index.d = sample_index.q + 1;
       max7219_driver.new = 1; // if new == 1, max7219 will refresh
       done.d = 0; // reset, so it loops back up
     }
