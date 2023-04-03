@@ -2,22 +2,13 @@
 <project name="MAX7219" board="Alchitry Au" language="Lucid" version="3">
   <files>
     <component>spi_controller.luc</component>
-    <src>static_display.luc</src>
     <component>counter.luc</component>
-    <src>multi_seven_seg.luc</src>
-    <src>multi_dec_ctr.luc</src>
     <component>decoder.luc</component>
-    <src>decimal_counter.luc</src>
-    <src>multi_base_ctr.luc</src>
-    <src>seven_seg.luc</src>
     <src>max7219_driver.luc</src>
-    <src>base_ctr.luc</src>
-    <src>dynamic_counter_display.luc</src>
     <src top="true">au_top.luc</src>
     <component>reset_conditioner.luc</component>
     <component>edge_detector.luc</component>
     <src>max7219.luc</src>
-    <src>spi_master.luc</src>
     <constraint lib="true">alchitry.acf</constraint>
     <constraint lib="true">io.acf</constraint>
     <constraint lib="true">au.xdc</constraint>
