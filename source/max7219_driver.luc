@@ -36,7 +36,7 @@ module max7219_driver (
         SEND_OFF_DISPLAY_TEST, // off flashing of LED, dont use this in prod
         SEND_NO_DECODE, // turn off decode reg and set each digit directly
         SEND_SCAN_ALL_DIGITS, // scanline register to switch on all rows (digits)
-        SEND_WORD, // write 8 digits of data (or 8 rows 8 cols)
+        SEND_WORD, // write 8 digits of data to DIGIT register
         SEND_TURN_ON  // turn it on again to show the latest update
         };
       dff digit_index[4](#INIT(0));
