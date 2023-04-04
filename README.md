@@ -34,7 +34,7 @@ There's also one helper output: `busy`: which tells the user of `max7219.luc` on
 The driver file `max7219_driver.luc` receives `input segment_values[8][8]`, and is made to toggle between these states (you can modify these):
 
 ```
-      fsm state(#INIT(INITIALIZE)) = {
+    fsm state(#INIT(INITIALIZE)) = {
         INITIALIZE, // wait until max7219 is ready
         IDLE, //  wait for new input
         SEND_INITIAL_SHUTDOWN, // shut every pixel down and go to no decode and set scan to ALL digits
@@ -45,7 +45,7 @@ The driver file `max7219_driver.luc` receives `input segment_values[8][8]`, and 
         SEND_SCAN_ALL_DIGITS, // scanline register to switch on all rows (digits)
         SEND_WORD, // write 8 digits of data to `DIGIT` register
         SEND_TURN_ON  // turn it on again to show the latest update
-        };
+    };
 ```
 
 Upon startup, it will off all pixels (`SEND_INITIAL_SHUTDOWN`), set decode register to "no decode" (`SEND_NO_DECODE`), set scan register to scan (show) all digits (`SEND_NO_DECODE`) and then begin to `SEND_WORD` (send col values row by row, each to a DIGIT register). Once done, it will go to `SEND_TURN_ON` to switch all lights on, and go to `IDLE`.
