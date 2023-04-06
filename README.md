@@ -24,6 +24,12 @@ You should observe your 8x8 LED matrix or 8 digit 7 segments to toggle between t
   const TESTWORDS = {$reverse({B, E, E, E, E, E, E, F}), $reverse({D, E, A, D, B, E, E, F})};
 ```
 
+This is `DEADBEEF`:
+![deadbeef](images/deadbeef.png)
+
+And this is `BEEEEEEF`:
+![beeeeeef](images/beeeeeef.png)
+
 ### Usage
 
 `max7219.luc` is designed to work together with `max7219_driver.luc`. `max7219.luc` file receives 16 bit data meant to be loaded to `MAX7219` and serially produced them (MSB first) via `dout`, together with `sck` (clock) and `dout` once the entire 16 bits of data has been pumped out at `dout`.
@@ -53,9 +59,12 @@ Upon startup, it will off all pixels (`SEND_INITIAL_SHUTDOWN`), set decode regis
 At `IDLE`, it will be not `busy`, and ready to receive new input from `au_top` (watching `new` input). Similarly, the driver will give out `done` signal to indicate its user whether or not the current data has been latched and displayed.
 
 ### `CHAIN` option
-You can set CHAIN to be > 1 and MAX7219 will pump out CHAIN * 16 bits before setting LATCH to high before the 17th clock cycle so that all CHAIN * 16 bits of data is latched to the corresponding matrices/segments connected via the shift register.
 
-At any given time, you MUST pump `input segment_values[8][8*CHAIN],` accordingly, that is if you have 3 8x8 matrices in a chain, you need to give 8x24 bits of data at once via `segment_values`. 
+You can set CHAIN to be > 1 and MAX7219 will pump out `CHAIN x 16` bits before setting LATCH to high before the 17th clock cycle so that all `CHAIN x 16` bits of data is latched to the corresponding matrices/segments connected via the shift register.
+
+At any given time, you MUST pump `input segment_values[8][8*CHAIN]` accordingly, that is if you have 3 8x8 matrices in a chain, you need to give 8x24 bits of data at once via `segment_values`.
+
+**All** matrices in the chain will show `DEADBEEF`, then all will toggle to `BEEEEEEF` and back and forth.
 
 ### Debug
 
