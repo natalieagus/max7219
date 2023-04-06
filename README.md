@@ -55,6 +55,8 @@ At `IDLE`, it will be not `busy`, and ready to receive new input from `au_top` (
 ### `CHAIN` option
 You can set CHAIN to be > 1 and MAX7219 will pump out CHAIN * 16 bits before setting LATCH to high before the 17th clock cycle so that all CHAIN * 16 bits of data is latched to the corresponding matrices/segments connected via the shift register.
 
+At any given time, you MUST pump `input segment_values[8][8*CHAIN],` accordingly, that is if you have 3 8x8 matrices in a chain, you need to give 8x24 bits of data at once via `segment_values`. 
+
 ### Debug
 
 You can slow down clock in `max7219.luc` by setting the index of `slowclock.value` to be a bigger number. The minimum index is `4` as MAX7219 can work with `10MHz clock` at best.
