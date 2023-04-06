@@ -52,6 +52,9 @@ Upon startup, it will off all pixels (`SEND_INITIAL_SHUTDOWN`), set decode regis
 
 At `IDLE`, it will be not `busy`, and ready to receive new input from `au_top` (watching `new` input). Similarly, the driver will give out `done` signal to indicate its user whether or not the current data has been latched and displayed.
 
+### `CHAIN` option
+You can set CHAIN to be > 1 and MAX7219 will pump out CHAIN * 16 bits before setting LATCH to high before the 17th clock cycle so that all CHAIN * 16 bits of data is latched to the corresponding matrices/segments connected via the shift register.
+
 ### Debug
 
 You can slow down clock in `max7219.luc` by setting the index of `slowclock.value` to be a bigger number. The minimum index is `4` as MAX7219 can work with `10MHz clock` at best.

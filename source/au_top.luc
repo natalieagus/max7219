@@ -11,8 +11,10 @@ module au_top (
     input io_dip [3][8]     // DIP switches on IO Shield
   ) {
   
+  const CHAIN = 2; 
+  const SPEED = 25;
   sig rst;                  // reset signal
-  max7219_driver max7219_driver(.clk(clk), .rst(rst)); 
+  max7219_driver max7219_driver(#CHAIN(CHAIN), #SPEED(SPEED), .clk(clk), .rst(rst)); 
   reset_conditioner reset_cond(.clk(clk));
   
   const A = $reverse(b01110111);
@@ -21,7 +23,8 @@ module au_top (
   const E = $reverse(b01001111);
   const F = $reverse(b01000111);
   
-  const TESTWORDS = {$reverse({B, E, E, E, E, E, E, F}), $reverse({D, E, A, D, B, E, E, F})};
+  const TESTWORDS = {$reverse({c{CHAINx{B}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}}), 
+  $reverse({c{CHAINx{D}}, c{CHAINx{E}}, c{CHAINx{A}}, c{CHAINx{D}}, c{CHAINx{B}}, c{CHAINx{E}}, c{CHAINx{E}}, c{CHAINx{F}}})};
   
   dff done(#INIT(0),.clk(clk));
   dff sample_index(#INIT(0), .clk(clk));
@@ -65,15 +68,15 @@ module au_top (
     
     io_led[0] = max7219_driver.debug_data;
     io_led[1] = max7219_driver.debug_address;
-    io_led[2][2:0] = max7219_driver.debug_writer;
+    io_led[2] = max7219_driver.debug_writer; // only view the data writer counter
     
-    io_led[2][7] = max7219_driver.max7219_data;
-    io_led[2][6] = max7219_driver.max7219_load;
-    io_led[2][5] = max7219_driver.max7219_clock;
+
+
     
     if (io_dip[2] == 8d1){
-      // show which digit in driver is being written to 
-      io_led[2] = max7219_driver.debug_digit_index;
+          io_led[2][7] = max7219_driver.max7219_data;
+          io_led[2][6] = max7219_driver.max7219_load;
+          io_led[2][5] = max7219_driver.max7219_clock;
     }
     
     else if (io_dip[2] == 8d2){
