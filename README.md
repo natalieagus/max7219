@@ -64,7 +64,7 @@ You can set CHAIN to be > 1 and MAX7219 will pump out `CHAIN x 16` bits before s
 
 At any given time, you MUST pump `input segment_values[8][8*CHAIN]` accordingly, that is if you have 3 8x8 matrices in a chain, you need to give 8x24 bits of data at once via `segment_values`.
 
-**All** matrices in the chain will show `DEADBEEF`, then all will toggle to `BEEEEEEF` and back and forth.
+All matrices in the chain will show `DEADBEEF`, then all will toggle to `BEEEEEEF` and back and forth.
 
 ### Debug
 
