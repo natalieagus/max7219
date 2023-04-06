@@ -12,7 +12,7 @@ module au_top (
   ) {
   
   const CHAIN = 2; 
-  const SPEED = 25;
+  const SPEED = 5;
   sig rst;                  // reset signal
   max7219_driver max7219_driver(#CHAIN(CHAIN), #SPEED(SPEED), .clk(clk), .rst(rst)); 
   reset_conditioner reset_cond(.clk(clk));
