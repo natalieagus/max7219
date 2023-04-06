@@ -163,10 +163,11 @@ module max7219_driver #(
         if(max.busy != 1) { 
               // write to next digit reg address immediately since there's no other matrix in the chain
               digit_index.d = digit_index.q + 1;
-        }   
+           
         
-        if(&digit_index.q) { // have reached reg DIGIT address 8
-          state.d = state.SEND_TURN_ON; // all segments are written     
+              if(&digit_index.q) { // have reached reg DIGIT address 8
+                  state.d = state.SEND_TURN_ON; // all segments are written     
+              }
         }
         
       state.SEND_TURN_ON:
